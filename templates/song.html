@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="song-page">
+    <h1>{{ song.name if song.name and song.name|lower != 'nan' else 'Unknown Title' }}</h1>
+    <h2>by {{ song.composer if song.composer and song.composer|lower != 'nan' else 'Unknown Composer' }}</h2>
+
+    {% if song.events %}
+    <section class="events">
+        <h3>Connected Historical Events</h3>
+        <ul>
+        {% for e in song.events %}
+            <li>{{ e.description if e.description and e.description|lower != 'nan' else 'No description' }}</li>
+        {% endfor %}
+        </ul>
+    </section>
+    {% else %}
+    <p class="no-events">No historical events linked yet.</p>
+    {% endif %}
+
+    <a href="/" class="back-link">← Back to Timeline</a>
+</article>
+{% endblock %}

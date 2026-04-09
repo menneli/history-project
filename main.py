@@ -56,6 +56,31 @@ def main():
         except Exception as e:
             print(f"      Failed: {e}")
 
+        print("\n🔍 DEBUG: Excel ID → Description samples")
+        import pandas as pd
+        df_events = pd.read_excel(excel_file, sheet_name="События")
+        df_songs = pd.read_excel(excel_file, sheet_name="Музыка")
+
+        print("\n📅 Events sheet (first 3 rows):")
+        for _, row in df_events.head(3).iterrows():
+            print(f"   ID: '{row.get('Номер события')}' | Desc: '{row.get('Краткое описание')}'")
+
+        print("\n🎵 Songs with event IDs (first 3 that have them):")
+        songs_with_ids = df_songs[df_songs["ID события"].notna()].head(3)
+        for _, row in songs_with_ids.iterrows():
+            print(f"   Song: '{row.get('Композиция')}' | Event IDs: '{row.get('ID события')}'")
+
+
+        print("\n   Linking songs to events...")
+        try:
+            from services.importer import link_songs_to_events
+            link_stats = link_songs_to_events(excel_file)
+            print(f"      Links created: {link_stats['linked']}")
+            print(f"      ️  Skipped (no ID match): {link_stats['skipped_no_id']}")
+            print(f"      Skipped (song not in DB): {link_stats['skipped_no_song']}")
+        except Exception as e:
+            print(f"      Linking failed: {e}")
+
     # Step 5: Verify results
     print("\nFinal Database Status:")
     print("   " + "-" * 40)
