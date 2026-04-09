@@ -62,4 +62,3 @@ history-project/
 
 ---
 *Создано с помощью FastAPI, SQLAlchemy, Jinja2 и pandas. Пайплайн данных автоматически обрабатывает Excel edge cases (NaNs, кавычки, float ID, пустые строки).*
-```
