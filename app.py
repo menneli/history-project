@@ -52,7 +52,7 @@ async def song_by_name_only(request: Request, song_slug: str, db: Session = Depe
         print(f"Not found by name: '{song_q}'")
         raise HTTPException(status_code=404, detail="Song not found")
 
-    return templates.TemplateResponse("song.html", {"request": request, "song": song})
+    return templates.TemplateResponse(request, "song.html", {"song": song})
 
 
 @app.get("/{composer_slug}/{song_slug}", response_class=HTMLResponse)
@@ -80,10 +80,7 @@ async def song_page(request: Request, composer_slug: str, song_slug: str, db: Se
             print(f"   Close name matches: {[(s.composer, s.name) for s in close_matches[:3]]}")
         raise HTTPException(status_code=404, detail="Song not found")
 
-    return templates.TemplateResponse(
-        name="song.html",
-        context={"request": request, "song": song}
-    )
+    return templates.TemplateResponse(request, "song.html", {"song": song})
 
 # For Tilda; do not use currently
 
@@ -108,7 +105,4 @@ def song_api(song_slug: str, db: Session = Depends(get_db)):
 @app.get("/", response_class=HTMLResponse)
 async def timeline(request: Request, db: Session = Depends(get_db)):
     songs = db.query(Song).order_by(Song.composer, Song.name).all()
-    return templates.TemplateResponse(
-        name="timeline.html",
-        context={"request": request, "songs": songs}
-    )
+    return templates.TemplateResponse(request, "timeline.html", {"songs": songs})
