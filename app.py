@@ -21,9 +21,6 @@ def get_db():
     finally:
         db.close()
 
-app = FastAPI(title="HistorySounds")
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
 def normalize(text: str) -> str:
     if not text:
         return ""
@@ -37,13 +34,6 @@ def normalize(text: str) -> str:
 @app.get("/song/{song_slug}", response_class=HTMLResponse)
 async def song_by_name_only(request: Request, song_slug: str, db: Session = Depends(get_db)):
     from urllib.parse import unquote
-    import re
-
-    def normalize(t: str) -> str:
-        if not t: return ""
-        t = str(t).lower().strip()
-        t = re.sub(r'[^\w\s-]', '', t)  # Strips «»""'':,.;!? etc.
-        return re.sub(r'\s+', ' ', t)
 
     song_q = normalize(unquote(song_slug))
     song = next((s for s in db.query(Song).all() if normalize(s.name) == song_q), None)
@@ -86,11 +76,6 @@ async def song_page(request: Request, composer_slug: str, song_slug: str, db: Se
 
 @app.get("/api/song/{song_slug}")
 def song_api(song_slug: str, db: Session = Depends(get_db)):
-    from urllib.parse import unquote
-    import re
-    def normalize(t):
-        return re.sub(r'\s+', ' ', re.sub(r'[«»"\'`:,.;!?]', '', str(t).lower().strip())) if t else ""
-
     song_q = normalize(unquote(song_slug))
     song = next((s for s in db.query(Song).all() if normalize(s.name) == song_q), None)
     if not song:
