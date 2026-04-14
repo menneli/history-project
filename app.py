@@ -39,6 +39,24 @@ async def event_page(request: Request, event_id: int, db: Session = Depends(get_
 
     return templates.TemplateResponse(request, "event.html", {"event": event})
 
+@app.get("/song/{song_slug}", response_class=HTMLResponse)
+async def song_page(request: Request, song_slug: str, db: Session = Depends(get_db)):
+    from urllib.parse import unquote
+    import re
+
+    def normalize(t: str) -> str:
+        if not t: return ""
+        t = str(t).lower().strip()
+        t = re.sub(r'[^\w\s-]', '', t)  # Strips «»""'':,.;!? etc.
+        return re.sub(r'\s+', ' ', t)
+
+    song_q = normalize(unquote(song_slug))
+    song = next((s for s in db.query(Song).all() if normalize(s.name) == song_q), None)
+
+    if not song:
+        raise HTTPException(status_code=404, detail="Song not found")
+
+    return templates.TemplateResponse(request, "song.html", {"song": song})
 
 @app.get("/{composer_slug}/{song_slug}", response_class=HTMLResponse)
 async def song_page(request: Request, composer_slug: str, song_slug: str, db: Session = Depends(get_db)):
