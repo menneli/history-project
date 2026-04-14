@@ -1,29 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>20th Century Music & History</h1>
-<p class="debug-count">Showing {{ songs|length }} songs from DB</p>
+<h1>Исторические события XX века</h1>
+<p class="debug-count">Всего событий: {{ events|length }}</p>
 <ul class="timeline">
-{% for s in songs %}
-  {# Safe check: name exists, is string, and not just whitespace #}
-  {% set safe_name = (s.name or "")|string|trim %}
-  {% if safe_name and safe_name|lower != 'nan' %}
-    {% set composer_val = (s.composer or "")|string|trim %}
-    {% if composer_val in ['nan', 'none', '', '?'] %}
-      {% set composer_val = '' %}
-    {% endif %}
-
-    <li class="timeline-item">
-      {% if composer_val %}
-        <a href="/{{ composer_val | e }}/{{ safe_name | e }}" class="song-link">
-          <strong>{{ safe_name }}</strong> by {{ composer_val }}
-        </a>
-      {% else %}
-        <a href="/song/{{ safe_name | e }}" class="song-link">
-          <strong>{{ safe_name }}</strong> <em>(Unknown)</em>
-        </a>
-      {% endif %}
-    </li>
-  {% endif %}
+{% for e in events %}
+  <li class="timeline-item">
+    <a href="/event/{{ e.id }}" class="event-link">
+      <strong>
+        {{ e.description[:120] }}{% if e.description|length > 120 %}...{% endif %}
+      </strong>
+      <span class="event-meta">ID: {{ e.id }} • Связано: {{ e.songs|length }} комп.</span>
+    </a>
+  </li>
 {% endfor %}
 </ul>
 {% endblock %}

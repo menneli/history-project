@@ -91,3 +91,11 @@ h1 { margin-bottom: 1.5rem; font-size: 1.8rem; }
 .back-link:hover { text-decoration: underline; }
 
 .debug-count { color: #666; font-size: 0.9rem; margin-bottom: 1rem; }
+.event-link { text-decoration: none; color: #0056b3; display: block; padding: 0.25rem 0; }
+.event-link:hover { text-decoration: underline; }
+.event-meta { display: block; font-size: 0.85rem; color: #666; margin-top: 0.2rem; }
+
+.event-page .description { white-space: pre-wrap; line-height: 1.7; margin-bottom: 2rem; }
+.song-list { list-style: none; padding: 0; }
+.song-list li { padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+.song-list li:last-child { border-bottom: none; }

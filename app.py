@@ -31,18 +31,13 @@ def normalize(text: str) -> str:
     return text
 
 
-@app.get("/song/{song_slug}", response_class=HTMLResponse)
-async def song_by_name_only(request: Request, song_slug: str, db: Session = Depends(get_db)):
-    from urllib.parse import unquote
+@app.get("/event/{event_id}", response_class=HTMLResponse)
+async def event_page(request: Request, event_id: int, db: Session = Depends(get_db)):
+    event = db.query(Event).filter(Event.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
 
-    song_q = normalize(unquote(song_slug))
-    song = next((s for s in db.query(Song).all() if normalize(s.name) == song_q), None)
-
-    if not song:
-        print(f"Not found by name: '{song_q}'")
-        raise HTTPException(status_code=404, detail="Song not found")
-
-    return templates.TemplateResponse(request, "song.html", {"song": song})
+    return templates.TemplateResponse(request, "event.html", {"event": event})
 
 
 @app.get("/{composer_slug}/{song_slug}", response_class=HTMLResponse)
@@ -89,5 +84,6 @@ def song_api(song_slug: str, db: Session = Depends(get_db)):
 
 @app.get("/", response_class=HTMLResponse)
 async def timeline(request: Request, db: Session = Depends(get_db)):
-    songs = db.query(Song).order_by(Song.composer, Song.name).all()
-    return templates.TemplateResponse(request, "timeline.html", {"songs": songs})
+    # Order by ID
+    events = db.query(Event).order_by(Event.id.asc()).all()
+    return templates.TemplateResponse(request, "timeline.html", {"events": events})

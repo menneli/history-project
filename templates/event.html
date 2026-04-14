@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="event-page">
+    <h1>Событие #{{ event.id }}</h1>
+    <p class="description">{{ event.description }}</p>
+
+    {% if event.songs %}
+    <section class="linked-songs">
+        <h3>🎵 Связанные музыкальные произведения ({{ event.songs|length }})</h3>
+        <ul class="song-list">
+        {% for song in event.songs %}
+            <li>
+                <a href="/song/{{ song.name | e }}" class="song-link">
+                    <strong>{{ song.name }}</strong>
+                    {% if song.composer and song.composer|lower not in ['nan', 'none', '', '?'] %}
+                        by {{ song.composer }}
+                    {% else %}
+                        <em>(Unknown)</em>
+                    {% endif %}
+                </a>
+            </li>
+        {% endfor %}
+        </ul>
+    </section>
+    {% else %}
+    <p class="no-songs">Нет связанных музыкальных произведений.</p>
+    {% endif %}
+
+    <a href="/" class="back-link">← Вернуться к таймлайну</a>
+</article>
+{% endblock %}
