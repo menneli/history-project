@@ -13,13 +13,21 @@ import re
 
 app = FastAPI(title="HistorySounds")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allows Tilda, localhost, etc. (safe for testing)
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
+@app.middleware("http")
+async def force_cors_and_no_cache(request: Request, call_next):
+    response = await call_next(request)
+
+    # Guarantee CORS headers on every response
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+
+    # Bypass Railway CDN cache for API routes
+    if request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+
+    return response
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
@@ -82,11 +90,6 @@ def song_api(song_slug: str, db: Session = Depends(get_db)):
         "description": song.description,
         "events": [e.description for e in song.events]
     }
-
-# Temporary debug route
-@app.get("/api/ping")
-def ping():
-    return {"status": "ok", "cors_test": True}
 
 @app.get("/event/{event_id}", response_class=HTMLResponse)
 async def event_page(request: Request, event_id: int, db: Session = Depends(get_db)):
