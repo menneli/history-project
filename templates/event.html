@@ -6,16 +6,17 @@
 
     {% if event.songs %}
     <section class="linked-songs">
-        <h3>🎵 Связанные музыкальные произведения ({{ event.songs|length }})</h3>
+        <h3>Связанные музыкальные произведения ({{ event.songs|length }})</h3>
         <ul class="song-list">
         {% for song in event.songs %}
             <li>
                 <a href="/song/{{ song.name | e }}" class="song-link">
                     <strong>{{ song.name }}</strong>
-                    {% if song.composer and song.composer|lower not in ['nan', 'none', '', '?'] %}
-                        by {{ song.composer }}
+                    {% set comp = (song.composer or "")|string|trim %}
+                    {% if comp and comp|lower not in ['nan', 'none', '', '?', '—', '-'] %}
+                        — {{ comp }}
                     {% else %}
-                        <em>(Unknown)</em>
+                        <em>(Автор неизвестен)</em>
                     {% endif %}
                 </a>
             </li>

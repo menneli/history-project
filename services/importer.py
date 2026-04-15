@@ -35,15 +35,20 @@ def import_songs_from_excel(file_path: str | Path, sheet_name: str = "Музык
             # Safely extract & clean fields
             name = str(getattr(song_in, 'name', '') or '').strip()
             composer = str(getattr(song_in, 'composer', '') or '').strip()
+            description = str(getattr(song_in, 'description', '') or '').strip()
 
-            # Skip rows where name is missing, empty, or a pandas NaN artifact
+            # Skip rows where name is missing, empty, or NaN
             if not name or name.lower() in ('nan', 'none', ''):
                 stats["skipped_empty"] += 1
                 continue
 
-            # Normalize composer to empty string if it's NaN/None
+            # Normalize composer
             if composer.lower() in ('nan', 'none', ''):
                 composer = ""
+
+            # Clean description: skip if it's NaN/None/empty
+            if description.lower() in ('nan', 'none', ''):
+                description = None
 
             try:
                 existing = db.query(Song).filter(
@@ -52,7 +57,11 @@ def import_songs_from_excel(file_path: str | Path, sheet_name: str = "Музык
                 ).first()
 
                 if not existing:
-                    db_song = Song(name=name, composer=composer)
+                    db_song = Song(
+                        name=name,
+                        composer=composer,
+                        description=description
+                    )
                     db.add(db_song)
                     stats["imported"] += 1
             except Exception as e:
@@ -89,7 +98,7 @@ def import_events_from_excel(file_path: str | Path, sheet_name: str = "Собы�
                     stats["skipped_duplicates"] += 1
                     continue
 
-                # 🔧 Store Excel ID for later linking
+                # Store Excel ID for later linking
                 db_event = Event(
                     description=str(desc).strip(),
                     excel_id=str(int(float(excel_id))) if pd.notna(excel_id) else None
@@ -164,7 +173,7 @@ def link_songs_to_events(file_path: str | Path, sheet_songs="Музыка", shee
         return stats
     except Exception as e:
         db.rollback()
-        print(f"❌ Linking error: {e}")
+        print(f" Linking error: {e}")
         raise RuntimeError(f"Event linking failed: {e}") from e
     finally:
         db.close()

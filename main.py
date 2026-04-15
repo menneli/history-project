@@ -56,16 +56,16 @@ def main():
         except Exception as e:
             print(f"      Failed: {e}")
 
-        print("\n🔍 DEBUG: Excel ID → Description samples")
+        print("\n DEBUG: Excel ID → Description samples")
         import pandas as pd
         df_events = pd.read_excel(excel_file, sheet_name="События")
         df_songs = pd.read_excel(excel_file, sheet_name="Музыка")
 
-        print("\n📅 Events sheet (first 3 rows):")
+        print("\n Events sheet (first 3 rows):")
         for _, row in df_events.head(3).iterrows():
             print(f"   ID: '{row.get('Номер события')}' | Desc: '{row.get('Краткое описание')}'")
 
-        print("\n🎵 Songs with event IDs (first 3 that have them):")
+        print("\n Songs with event IDs (first 3 that have them):")
         songs_with_ids = df_songs[df_songs["ID события"].notna()].head(3)
         for _, row in songs_with_ids.iterrows():
             print(f"   Song: '{row.get('Композиция')}' | Event IDs: '{row.get('ID события')}'")
