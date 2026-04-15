@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from urllib.parse import unquote
@@ -13,6 +14,14 @@ import re
 app = FastAPI(title="HistorySounds")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Replace with your Tilda domain later: ["https://your-site.tilda.ws"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def get_db():
     db = SessionLocal()
@@ -85,17 +94,46 @@ async def song_page(request: Request, composer_slug: str, song_slug: str, db: Se
 
     return templates.TemplateResponse(request, "song.html", {"song": song})
 
-# For Tilda; do not use currently
+# For Tilda
 
+@app.get("/api/events")
+def get_events(db: Session = Depends(get_db)):
+    events = db.query(Event).order_by(Event.id.asc()).all()
+    return JSONResponse([
+        {
+            "id": e.id,
+            "preview": e.description[:120] + ("..." if len(e.description) > 120 else ""),
+            "full": e.description,
+            "song_count": len(e.songs)
+        } for e in events
+    ])
+
+# Event details + linked songs
+@app.get("/api/event/{event_id}")
+def get_event(event_id: int, db: Session = Depends(get_db)):
+    event = db.query(Event).filter(Event.id == event_id).first()
+    if not event:
+        raise HTTPException(404, "Event not found")
+    return JSONResponse({
+        "id": event.id,
+        "description": event.description,
+        "songs": [
+            {"name": s.name, "composer": s.composer or "Автор неизвестен"}
+            for s in event.songs
+        ]
+    })
+
+# Song details
 @app.get("/api/song/{song_slug}")
 def song_api(song_slug: str, db: Session = Depends(get_db)):
     song_q = normalize(unquote(song_slug))
     song = next((s for s in db.query(Song).all() if normalize(s.name) == song_q), None)
     if not song:
-        raise HTTPException(404)
+        raise HTTPException(404, "Song not found")
     return JSONResponse({
         "name": song.name,
-        "composer": song.composer or "Unknown",
+        "composer": song.composer or "Автор неизвестен",
+        "description": song.description,
         "events": [e.description for e in song.events]
     })
 
