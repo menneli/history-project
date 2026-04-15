@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     PROJECT_VERSION: str = "1.0.0"
 
     # Настройки базы данных
-    DATABASE_URL: str = "sqlite:///./data/hs.db"
+    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/hs.db")
 
     # Дополнительные настройки
     API_V1_STR: str = "/api/v1"
