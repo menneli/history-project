@@ -1,15 +1,12 @@
 """
 Конфигурация приложения
 """
-import os
 from pathlib import Path
-
 from pydantic_settings import BaseSettings
 
-from dotenv import load_dotenv
-
-load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env", override=True)
-
+if Path(".env").exists():
+    from dotenv import load_dotenv
+    load_dotenv(override=True)
 
 class Settings(BaseSettings):
     """
@@ -20,16 +17,12 @@ class Settings(BaseSettings):
     PROJECT_VERSION: str = "1.0.0"
 
     # Настройки базы данных
-    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/hs.db")
+    DATABASE_URL: str = "sqlite:///./data/hs.db"
 
     # Дополнительные настройки
     API_V1_STR: str = "/api/v1"
-
     EXCEL_DATA_PATH: str = "data/history_sounds.xlsx"
 
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "allow"}
+
 settings = Settings()
-
-
-
-
-
