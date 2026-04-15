@@ -17,7 +17,7 @@ templates = Jinja2Templates(directory="templates")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace with your Tilda domain later: ["https://your-site.tilda.ws"]
+    allow_origins=["*"],  # Allows Tilda, localhost, etc. (safe for testing)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
