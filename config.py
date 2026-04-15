@@ -18,11 +18,7 @@ class Settings(BaseSettings):
     PROJECT_VERSION: str = "1.0.0"
 
     # Настройки базы данных
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:////app/db/hs.db")
-
-    @property
-    def EXCEL_DATA_PATH(self) -> str:
-        return str(Path.cwd() / "data" / "history_sounds.xlsx")
+    DATABASE_URL: str = "sqlite:///./data/hs.db"
 
     # Дополнительные настройки
     API_V1_STR: str = "/api/v1"
