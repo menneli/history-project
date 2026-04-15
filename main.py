@@ -35,7 +35,19 @@ def main():
     print("\nImporting Excel data...")
     from services.importer import import_songs_from_excel, import_events_from_excel
 
-    excel_file = Path(settings.EXCEL_DATA_PATH)
+    excel_file = settings.EXCEL_DATA_PATH
+
+    #  DEBUG: Print absolute path and existence
+    print(f" Checking Excel at: {Path(excel_file).resolve()}")
+    print(f"   File exists: {Path(excel_file).exists()}")
+
+    if not Path(excel_file).exists():
+        print(f"    Excel file not found: {excel_file}")
+        # List files in data/ dir for debugging
+        data_dir = Path(excel_file).parent
+        if data_dir.exists():
+            print(f"    Contents of {data_dir}: {list(data_dir.iterdir())}")
+        return
 
     if not excel_file.exists():
         print(f"    Excel file not found: {excel_file.absolute()}")
