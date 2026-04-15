@@ -39,6 +39,49 @@ def normalize(text: str) -> str:
     text = re.sub(r'\s+', ' ', text)
     return text
 
+# For Tilda
+
+@app.get("/api/events")
+def get_events(db: Session = Depends(get_db)):
+    events = db.query(Event).order_by(Event.id.asc()).all()
+    return JSONResponse([
+        {
+            "id": e.id,
+            "preview": e.description[:120] + ("..." if len(e.description) > 120 else ""),
+            "full": e.description,
+            "song_count": len(e.songs)
+        } for e in events
+    ])
+
+# Event details + linked songs
+@app.get("/api/event/{event_id}")
+def get_event(event_id: int, db: Session = Depends(get_db)):
+    event = db.query(Event).filter(Event.id == event_id).first()
+    if not event:
+        raise HTTPException(404, "Event not found")
+    return JSONResponse({
+        "id": event.id,
+        "description": event.description,
+        "songs": [
+            {"name": s.name, "composer": s.composer or "Автор неизвестен"}
+            for s in event.songs
+        ]
+    })
+
+# Song details
+@app.get("/api/song/{song_slug}")
+def song_api(song_slug: str, db: Session = Depends(get_db)):
+    song_q = normalize(unquote(song_slug))
+    song = next((s for s in db.query(Song).all() if normalize(s.name) == song_q), None)
+    if not song:
+        raise HTTPException(404, "Song not found")
+    return JSONResponse({
+        "name": song.name,
+        "composer": song.composer or "Автор неизвестен",
+        "description": song.description,
+        "events": [e.description for e in song.events]
+    })
+
 
 @app.get("/event/{event_id}", response_class=HTMLResponse)
 async def event_page(request: Request, event_id: int, db: Session = Depends(get_db)):
@@ -93,49 +136,6 @@ async def song_page(request: Request, composer_slug: str, song_slug: str, db: Se
         raise HTTPException(status_code=404, detail="Song not found")
 
     return templates.TemplateResponse(request, "song.html", {"song": song})
-
-# For Tilda
-
-@app.get("/api/events")
-def get_events(db: Session = Depends(get_db)):
-    events = db.query(Event).order_by(Event.id.asc()).all()
-    return JSONResponse([
-        {
-            "id": e.id,
-            "preview": e.description[:120] + ("..." if len(e.description) > 120 else ""),
-            "full": e.description,
-            "song_count": len(e.songs)
-        } for e in events
-    ])
-
-# Event details + linked songs
-@app.get("/api/event/{event_id}")
-def get_event(event_id: int, db: Session = Depends(get_db)):
-    event = db.query(Event).filter(Event.id == event_id).first()
-    if not event:
-        raise HTTPException(404, "Event not found")
-    return JSONResponse({
-        "id": event.id,
-        "description": event.description,
-        "songs": [
-            {"name": s.name, "composer": s.composer or "Автор неизвестен"}
-            for s in event.songs
-        ]
-    })
-
-# Song details
-@app.get("/api/song/{song_slug}")
-def song_api(song_slug: str, db: Session = Depends(get_db)):
-    song_q = normalize(unquote(song_slug))
-    song = next((s for s in db.query(Song).all() if normalize(s.name) == song_q), None)
-    if not song:
-        raise HTTPException(404, "Song not found")
-    return JSONResponse({
-        "name": song.name,
-        "composer": song.composer or "Автор неизвестен",
-        "description": song.description,
-        "events": [e.description for e in song.events]
-    })
 
 
 @app.get("/", response_class=HTMLResponse)
