@@ -35,7 +35,7 @@ def main():
     print("\nImporting Excel data...")
     from services.importer import import_songs_from_excel, import_events_from_excel
 
-    excel_file = Path(settings.EXCEL_DATA_PATH)
+    excel_file = settings.EXCEL_DATA_PATH
 
     if not excel_file.exists():
         print(f"    Excel file not found: {excel_file.absolute()}")
