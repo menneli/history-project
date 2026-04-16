@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from config import EXCEL_DATA_PATH
 
 ROOT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT_DIR))
@@ -18,7 +19,7 @@ def main():
     # Step 1: Debug .env loading
     from config import settings
     print(f"\nDATABASE_URL: {settings.DATABASE_URL}")
-    print(f" EXCEL_DATA_PATH: {settings.EXCEL_DATA_PATH}")
+    print(f" EXCEL_DATA_PATH: {EXCEL_DATA_PATH}")
 
     # Step 2: Import models
     from models import songs, events, connection
@@ -35,7 +36,7 @@ def main():
     print("\nImporting Excel data...")
     from services.importer import import_songs_from_excel, import_events_from_excel
 
-    excel_file = settings.EXCEL_DATA_PATH
+    excel_file = EXCEL_DATA_PATH
 
     #  DEBUG: Print absolute path and existence
     print(f" Checking Excel at: {Path(excel_file).resolve()}")
@@ -49,10 +50,10 @@ def main():
             print(f"    Contents of {data_dir}: {list(data_dir.iterdir())}")
         return
 
-    if not excel_file.exists():
-        print(f"    Excel file not found: {excel_file.absolute()}")
+    if not Path(excel_file).exists():
+        print(f"    Excel file not found: {Path(excel_file).absolute()}")
     else:
-        print(f"    Source: {excel_file.absolute()}")
+        print(f"    Source: {Path(excel_file).absolute()}")
 
         print("\n   Importing songs...")
         try:

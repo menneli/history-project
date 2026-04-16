@@ -1,40 +1,39 @@
 {% extends "base.html" %}
+{% block title %}{{ song.name }} — HistorySounds{% endblock %}
 {% block content %}
 <article class="song-page">
+  <div class="page-header">
     <h1>{{ song.name }}</h1>
     {% set comp = (song.composer or "")|string|trim %}
-{% if comp and comp|lower not in ['nan', 'none', '', '?', '—', '-'] %}
-  <h2 class="composer">— {{ comp }}</h2>
-{% else %}
-  <h2 class="composer"><em>(Автор неизвестен)</em></h2>
-{% endif %}
-    {# SONG'S OWN DESCRIPTION (from Excel column) #}
-    {% if song.description %}
-    <section class="song-description">
-        <h3>Контекст создания</h3>
-        <p class="description">{{ song.description }}</p>
-    </section>
-    {% endif %}
-
-    {# LINKED HISTORICAL EVENTS #}
-    {% if song.events %}
-    <section class="events">
-        <h3>Связанные исторические события</h3>
-        <ul>
-        {% for e in song.events %}
-            <li>{{ e.description }}</li>  {# ← Note: e.description, NOT song.description #}
-        {% endfor %}
-        </ul>
-    </section>
+    {% if comp and comp|lower not in ['nan','none','','?','—','-'] %}
+      <h2>— {{ comp }}</h2>
     {% else %}
-    <section class="placeholder-events">
-        <h3>Исторический контекст</h3>
-        <div class="placeholder-box">
-            <p>Нет связанных исторических событий.</p>
-        </div>
-    </section>
+      <h2><em>(Автор неизвестен)</em></h2>
     {% endif %}
+  </div>
 
-    <a href="/" class="back-link">← Вернуться к таймлайну</a>
+  {% if song.description %}
+  <div class="card">
+    <h3>Контекст создания</h3>
+    <p>{{ song.description }}</p>
+  </div>
+  {% endif %}
+
+  {% if song.events %}
+  <div class="card">
+    <h3>Связанные исторические события</h3>
+    <ul>
+    {% for e in song.events %}
+      <li>{{ e.description }}</li>
+    {% endfor %}
+    </ul>
+  </div>
+  {% else %}
+  <div class="card">
+    <p style="color:var(--text-muted); font-style:italic;">Нет связанных исторических событий.</p>
+  </div>
+  {% endif %}
+
+  <a href="/" class="back-btn">← Вернуться к таймлайну</a>
 </article>
 {% endblock %}

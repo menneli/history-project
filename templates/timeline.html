@@ -1,17 +1,32 @@
 {% extends "base.html" %}
+{% block title %}Таймлайн — HistorySounds{% endblock %}
 {% block content %}
 <h1>Исторические события XX века</h1>
-<p class="debug-count">Всего событий: {{ events|length }}</p>
-<ul class="timeline">
+<p class="subtitle">Нажмите на событие, чтобы увидеть связанные музыкальные произведения</p>
+
+<input type="text" id="search" class="search-box" placeholder="Поиск по событиям...">
+
+<ul class="timeline" id="timeline">
 {% for e in events %}
-  <li class="timeline-item">
-    <a href="/event/{{ e.id }}" class="event-link">
-      <strong>
-        {{ e.description[:120] }}{% if e.description|length > 120 %}...{% endif %}
-      </strong>
-      <span class="event-meta">ID: {{ e.id }} • Связано: {{ e.songs|length }} комп.</span>
-    </a>
+  <li class="timeline-item" data-text="{{ (e.title | lower) + ' ' + (e.songs | map(attribute='name') | join(' ') | lower) }}">
+    <div class="timeline-dot"></div>
+    <div class="timeline-content">
+      <a href="/event/{{ e.id }}" class="timeline-link">
+        <h3>{{ e.title or (e.description | truncate(55, False, '…')) }}</h3>
+        <span class="timeline-meta">ID: {{ e.id }} • Связано: {{ e.songs|length }} комп.</span>
+      </a>
+    </div>
   </li>
 {% endfor %}
 </ul>
+
+<script>
+document.getElementById('search').addEventListener('input', (e) => {
+  const q = e.target.value.toLowerCase();
+  document.querySelectorAll('.timeline-item').forEach(item => {
+    const text = item.getAttribute('data-text') || '';
+    item.style.display = text.includes(q) ? 'list-item' : 'none';
+  });
+});
+</script>
 {% endblock %}

@@ -79,18 +79,23 @@ def import_songs_from_excel(file_path: str | Path, sheet_name: str = "Музык
 
 def import_events_from_excel(file_path: str | Path, sheet_name: str = "События") -> dict:
     """Parse Excel events sheet & insert into DB. Returns import stats."""
+    from services.parser import _clean_and_rename_columns
     db = SessionLocal()
     try:
         events_df = pd.read_excel(file_path, sheet_name=sheet_name)
+        events_df = _clean_and_rename_columns(events_df)
         stats = {"imported": 0, "skipped_duplicates": 0, "errors": 0}
 
         for _, row in events_df.iterrows():
             try:
-                desc = row.get("Краткое описание")
-                excel_id = row.get("Номер события")
+                desc = row.get("description")
+                excel_id = row.get("event_id")
+                raw_title = row.get("title")
 
                 if pd.isna(desc):
                     continue
+
+                title = str(raw_title).strip() if pd.notna(raw_title) else None
 
                 # Check for duplicates by description
                 existing = db.query(Event).filter(Event.description == str(desc).strip()).first()
@@ -101,6 +106,7 @@ def import_events_from_excel(file_path: str | Path, sheet_name: str = "Собы�
                 # Store Excel ID for later linking
                 db_event = Event(
                     description=str(desc).strip(),
+                    title=title,
                     excel_id=str(int(float(excel_id))) if pd.notna(excel_id) else None
                 )
                 db.add(db_event)
@@ -118,6 +124,8 @@ def import_events_from_excel(file_path: str | Path, sheet_name: str = "Собы�
         db.close()
 
 def link_songs_to_events(file_path: str | Path, sheet_songs="Музыка", sheet_events="События") -> dict:
+    from services.parser import _clean_and_rename_columns
+
     def normalize_event_id(raw_id) -> str:
         if pd.isna(raw_id):
             return None
