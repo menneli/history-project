@@ -5,14 +5,16 @@ from pydantic import BaseModel, ValidationError
 
 
 RUSSIAN_COLUMN_MAP = {
-    "композиция": "name",
-    "автор": "composer",
+    "track": "name",
+    "author": "composer",
     "id песни": "song_id",
     "краткое описание": "description",
-    "id события": "event_id",
+    "id_event": "event_id",
     "номер события": "event_id",
-    "события в момент выхода композиции": "song_description",
-    "название": "title"
+    "event_connection": "song_description",
+    "название": "title",
+    "дата начала": "year_start",
+    "дата окончания": "year_end"
 }
 
 def _clean_and_rename_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -35,8 +37,9 @@ class EventImport(BaseModel):
     event_id: Optional[int] = None
     description: str
     title: Optional[str] = None
+    year: Optional[int] = None
 
-def parse_songs_excel(file_path: str | Path, sheet_name: str = "Songs") -> List[SongImport]:
+def parse_songs_excel(file_path: str | Path, sheet_name: str = "music") -> List[SongImport]:
     sheet_name = sheet_name.strip()
 
     available = pd.ExcelFile(file_path).sheet_names
@@ -49,7 +52,6 @@ def parse_songs_excel(file_path: str | Path, sheet_name: str = "Songs") -> List[
     songs = []
     for _, row in df.iterrows():
         try:
-            # Use the RENAMED column key ("song_description")
             raw_desc = row.get("song_description")
             description = str(raw_desc).strip() if pd.notna(raw_desc) else None
 
@@ -66,7 +68,7 @@ def parse_songs_excel(file_path: str | Path, sheet_name: str = "Songs") -> List[
     return songs
 
 
-def parse_events_excel(file_path: str | Path, sheet_name: str = "Events") -> List[EventImport]:
+def parse_events_excel(file_path: str | Path, sheet_name: str = "events") -> List[EventImport]:
     sheet_name = sheet_name.strip()
     df = pd.read_excel(file_path, sheet_name=sheet_name)
 
@@ -75,12 +77,15 @@ def parse_events_excel(file_path: str | Path, sheet_name: str = "Events") -> Lis
     events = []
     for _, row in df.iterrows():
         try:
+            raw_year = row.get("year")
+            year = int(float(raw_year)) if pd.notna(raw_year) and str(raw_year).strip() not in ('nan', 'none', '') else None
             raw_title = row.get("title")
             title = str(raw_title).strip() if pd.notna(raw_title) else None
             event = EventImport(
                 event_id=int(row["event_id"]) if pd.notna(row.get("event_id")) else None,
                 description=str(row["description"]).strip(),
                 title=title,
+                year=year
             )
             events.append(event)
         except ValidationError as e:

@@ -36,4 +36,11 @@
 
   <a href="/" class="back-btn">← Вернуться к таймлайну</a>
 </article>
+{% set from_event = request.query_params.get('from_event') %}
+
+{% if from_event %}
+  <a href="/event/{{ from_event }}" class="back-btn">← Вернуться к событию</a>
+{% else %}
+  <a href="/" class="back-btn">← Вернуться к таймлайну</a>
+{% endif %}
 {% endblock %}

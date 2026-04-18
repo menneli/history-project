@@ -11,3 +11,5 @@ class Event(Base):
     description = Column(String, nullable=False)
     excel_id = Column(String, index=True)
     songs = relationship("Song", secondary=song_event, back_populates="events")
+    year_start = Column(Integer, nullable=True)
+    year_end = Column(Integer, nullable=True)

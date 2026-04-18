@@ -57,31 +57,34 @@ def main():
 
         print("\n   Importing songs...")
         try:
-            song_stats = import_songs_from_excel(excel_file, sheet_name="Музыка")
+            song_stats = import_songs_from_excel(excel_file, sheet_name="music")
             print(f"      Songs: {song_stats}")
         except Exception as e:
             print(f"      Failed: {e}")
 
         print("\n   Importing events...")
         try:
-            event_stats = import_events_from_excel(excel_file, sheet_name="События")
+            event_stats = import_events_from_excel(excel_file, sheet_name="events")
             print(f"      Events: {event_stats}")
         except Exception as e:
             print(f"      Failed: {e}")
 
         print("\n DEBUG: Excel ID → Description samples")
         import pandas as pd
-        df_events = pd.read_excel(excel_file, sheet_name="События")
-        df_songs = pd.read_excel(excel_file, sheet_name="Музыка")
+        from services.parser import _clean_and_rename_columns
+        df_events = pd.read_excel(excel_file, sheet_name="events")
+        df_events = _clean_and_rename_columns(df_events)
+        df_songs = pd.read_excel(excel_file, sheet_name="music")
+        df_songs = _clean_and_rename_columns(df_songs)
 
         print("\n Events sheet (first 3 rows):")
         for _, row in df_events.head(3).iterrows():
-            print(f"   ID: '{row.get('Номер события')}' | Desc: '{row.get('Краткое описание')}'")
+            print(f"   ID: '{row.get('event_id')}' | Desc: '{row.get('description')}'")
 
         print("\n Songs with event IDs (first 3 that have them):")
-        songs_with_ids = df_songs[df_songs["ID события"].notna()].head(3)
+        songs_with_ids = df_songs[df_songs["event_id"].notna()].head(3)
         for _, row in songs_with_ids.iterrows():
-            print(f"   Song: '{row.get('Композиция')}' | Event IDs: '{row.get('ID события')}'")
+            print(f"   Song: '{row.get('name')}' | Event IDs: '{row.get('event_id')}'")
 
 
         print("\n   Linking songs to events...")

@@ -3,7 +3,7 @@
 {% block content %}
 <article class="event-page">
   <div class="page-header">
-    <h1>Событие #{{ event.id }}</h1>
+    <h1>{{ event.title }}</h1>
   </div>
 
   <div class="card">
@@ -16,7 +16,7 @@
     <ul class="song-list">
 {% for song in event.songs %}
   <li>
-    <a href="/song/{{ song.name | e }}" class="song-link">
+    <a href="/song/{{ song.name | e }}?from_event={{ event.id }}" class="song-link">
       <span class="song-title">{{ song.name }}</span>
       <span class="song-composer">
         {% if song.composer and song.composer|lower not in ['nan','none','','?','—','-'] %}
@@ -28,6 +28,7 @@
     </a>
   </li>
 {% endfor %}
+</ul>
 </ul>
   </div>
   {% else %}

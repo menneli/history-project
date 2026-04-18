@@ -7,13 +7,30 @@
 <input type="text" id="search" class="search-box" placeholder="Поиск по событиям...">
 
 <ul class="timeline" id="timeline">
+{% set decade_tracker = namespace(current=none) %}
 {% for e in events %}
+  {% set decade = (e.year_start // 10) * 10 if e.year_start else none %}
+
+  {% if decade and decade != decade_tracker.current %}
+    {% set decade_tracker.current = decade %}
+    <li class="timeline-decade">
+      <div class="timeline-dot"></div>
+      <div class="decade-label">{{ decade }}-е</div>
+    </li>
+  {% endif %}
+
   <li class="timeline-item" data-text="{{ (e.title | lower) + ' ' + (e.songs | map(attribute='name') | join(' ') | lower) }}">
     <div class="timeline-dot"></div>
     <div class="timeline-content">
       <a href="/event/{{ e.id }}" class="timeline-link">
-        <h3>{{ e.title or (e.description | truncate(55, False, '…')) }}</h3>
-        <span class="timeline-meta">ID: {{ e.id }} • Связано: {{ e.songs|length }} комп.</span>
+        <h3>
+          {{ e.title or (e.description | truncate(55, False, '…')) }}
+          {% if e.year_start %}
+            <span class="year-badge">
+              {{ e.year_start }}{% if e.year_end and e.year_end != e.year_start %}–{{ e.year_end }}{% endif %}
+            </span>
+          {% endif %}
+        </h3>
       </a>
     </div>
   </li>
@@ -23,9 +40,29 @@
 <script>
 document.getElementById('search').addEventListener('input', (e) => {
   const q = e.target.value.toLowerCase();
-  document.querySelectorAll('.timeline-item').forEach(item => {
+  const items = document.querySelectorAll('.timeline-item');
+
+  // 1. Filter events
+  items.forEach(item => {
     const text = item.getAttribute('data-text') || '';
     item.style.display = text.includes(q) ? 'list-item' : 'none';
+  });
+
+  // 2. Hide/show decades based on visible items
+  document.querySelectorAll('.timeline-decade').forEach(decade => {
+    let hasVisibleItem = false;
+    let sibling = decade.nextElementSibling;
+
+    // Check all items until the next decade or end of list
+    while (sibling && !sibling.classList.contains('timeline-decade')) {
+      if (sibling.classList.contains('timeline-item') && sibling.style.display !== 'none') {
+        hasVisibleItem = true;
+        break;
+      }
+      sibling = sibling.nextElementSibling;
+    }
+
+    decade.style.display = hasVisibleItem ? 'list-item' : 'none';
   });
 });
 </script>

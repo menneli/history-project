@@ -22,9 +22,31 @@ from services.parser import parse_songs_excel, parse_events_excel
 from pathlib import Path
 import pandas as pd
 from sqlalchemy import func
+import re
 
 
-def import_songs_from_excel(file_path: str | Path, sheet_name: str = "Музыка") -> dict:
+def normalize_event_id(raw_id) -> str:
+    if pd.isna(raw_id):
+        return None
+    try:
+        return str(int(float(raw_id)))
+    except (ValueError, TypeError):
+        return str(raw_id).strip() if raw_id else None
+
+def extract_year(raw_val):
+    """Safely extract year from dates like '19.04.1917', Excel date objects, or NaN."""
+    if pd.isna(raw_val):
+        return None
+    try:
+        # Pandas handles Excel dates, 'DD.MM.YYYY', 'YYYY-MM-DD', etc.
+        return pd.to_datetime(raw_val, dayfirst=True).year
+    except Exception:
+        # Fallback: grab first 4-digit year (19xx or 20xx) from string
+        match = re.search(r'\b(19|20)\d{2}\b', str(raw_val))
+        return int(match.group(0)) if match else None
+
+
+def import_songs_from_excel(file_path: str | Path, sheet_name: str = "music") -> dict:
     """Parse Excel and insert songs into DB. Returns import stats."""
     db = SessionLocal()
     try:
@@ -77,7 +99,7 @@ def import_songs_from_excel(file_path: str | Path, sheet_name: str = "Музык
         db.close()
 
 
-def import_events_from_excel(file_path: str | Path, sheet_name: str = "События") -> dict:
+def import_events_from_excel(file_path: str | Path, sheet_name: str = "events") -> dict:
     """Parse Excel events sheet & insert into DB. Returns import stats."""
     from services.parser import _clean_and_rename_columns
     db = SessionLocal()
@@ -96,6 +118,22 @@ def import_events_from_excel(file_path: str | Path, sheet_name: str = "Собы�
                     continue
 
                 title = str(raw_title).strip() if pd.notna(raw_title) else None
+                raw_start = row.get("year_start")
+                raw_end = row.get("year_end")
+
+                year_start = None
+                if pd.notna(raw_start):
+                    try:
+                        year_start = extract_year(raw_start)
+                    except:
+                        pass
+
+                year_end = None
+                if pd.notna(raw_end):
+                    try:
+                        year_end = extract_year(raw_end)
+                    except:
+                        pass
 
                 # Check for duplicates by description
                 existing = db.query(Event).filter(Event.description == str(desc).strip()).first()
@@ -103,11 +141,13 @@ def import_events_from_excel(file_path: str | Path, sheet_name: str = "Собы�
                     stats["skipped_duplicates"] += 1
                     continue
 
-                # Store Excel ID for later linking
+                # Save with both year fields
                 db_event = Event(
                     description=str(desc).strip(),
                     title=title,
-                    excel_id=str(int(float(excel_id))) if pd.notna(excel_id) else None
+                    excel_id=normalize_event_id(excel_id),
+                    year_start=year_start,
+                    year_end=year_end,
                 )
                 db.add(db_event)
                 stats["imported"] += 1
@@ -123,32 +163,29 @@ def import_events_from_excel(file_path: str | Path, sheet_name: str = "Собы�
     finally:
         db.close()
 
-def link_songs_to_events(file_path: str | Path, sheet_songs="Музыка", sheet_events="События") -> dict:
+def link_songs_to_events(file_path: str | Path, sheet_songs="music", sheet_events="events") -> dict:
     from services.parser import _clean_and_rename_columns
-
-    def normalize_event_id(raw_id) -> str:
-        if pd.isna(raw_id):
-            return None
-        try:
-            return str(int(float(raw_id)))
-        except (ValueError, TypeError):
-            return str(raw_id).strip() if raw_id else None
 
     db = SessionLocal()
     try:
         songs_df = pd.read_excel(file_path, sheet_name=sheet_songs)
+        songs_df = _clean_and_rename_columns(songs_df)
 
         event_map = {}
         for event in db.query(Event).filter(Event.excel_id != None).all():
-            if event.excel_id:
-                event_map[event.excel_id] = event
+            raw = str(event.excel_id)
+            try:
+                clean = str(int(float(raw)))
+            except:
+                clean = raw.strip()
+            event_map[clean] = event
 
         stats = {"linked": 0, "skipped_no_id": 0, "skipped_no_song": 0, "errors": 0}
 
         for _, row in songs_df.iterrows():
-            song_name = row.get("Композиция")
-            composer = row.get("Автор")
-            event_ids_raw = row.get("ID события")
+            song_name = row.get("name")
+            composer = row.get("composer")
+            event_ids_raw = row.get("event_id")
 
             if pd.isna(event_ids_raw) or pd.isna(song_name):
                 stats["skipped_no_id"] += 1
