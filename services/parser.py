@@ -14,7 +14,9 @@ RUSSIAN_COLUMN_MAP = {
     "event_connection": "song_description",
     "название": "title",
     "дата начала": "year_start",
-    "дата окончания": "year_end"
+    "дата окончания": "year_end",
+    "основные факты": "bio",
+    "link": "link"
 }
 
 def _clean_and_rename_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -30,8 +32,9 @@ def _clean_and_rename_columns(df: pd.DataFrame) -> pd.DataFrame:
 class SongImport(BaseModel):
     song_id: Optional[int] = None
     name: str
-    composer: str
+    composer: Optional[str] = None
     description: Optional[str] = None
+    link: Optional[str] = None
 
 class EventImport(BaseModel):
     event_id: Optional[int] = None
@@ -54,12 +57,15 @@ def parse_songs_excel(file_path: str | Path, sheet_name: str = "music") -> List[
         try:
             raw_desc = row.get("song_description")
             description = str(raw_desc).strip() if pd.notna(raw_desc) else None
+            raw_link = row.get("link")
+            link = str(raw_link).strip() if pd.notna(raw_link) else None
 
             song = SongImport(
                 song_id=int(row["song_id"]) if pd.notna(row.get("song_id")) else None,
                 name=str(row["name"]).strip(),
                 composer=str(row["composer"]).strip(),
-                description=description
+                description=description,
+                link=link
             )
             songs.append(song)
         except ValidationError as e:

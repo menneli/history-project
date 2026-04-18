@@ -265,3 +265,12 @@ footer {
   animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+.link-card { text-align: center; padding: 1rem; }
+.audio-btn {
+  display: inline-block; padding: 0.6rem 1.2rem;
+  background: var(--primary); color: white;
+  text-decoration: none; border-radius: var(--radius);
+  font-weight: 500; transition: background var(--transition);
+}
+.audio-btn:hover { background: var(--primary-hover); }

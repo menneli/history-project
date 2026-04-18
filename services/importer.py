@@ -53,11 +53,39 @@ def import_songs_from_excel(file_path: str | Path, sheet_name: str = "music") ->
         songs_data = parse_songs_excel(file_path, sheet_name=sheet_name)
         stats = {"imported": 0, "skipped_duplicates": 0, "errors": 0, "skipped_empty": 0}
 
+        comp_df = pd.read_excel(file_path, sheet_name="composers")
+        print(f"\nComposers sheet columns: {list(comp_df.columns)}")
+
+        comp_df.columns = comp_df.columns.str.lower().str.strip()
+        print(f"After lowercasing: {list(comp_df.columns)}")
+
+        author_col = "ФИО"
+        info_col = "Основные факты"
+
+        composer_map = {}
+        if author_col and info_col:
+            author_found = next((c for c in comp_df.columns if author_col.lower() in c), None)
+            info_found = next((c for c in comp_df.columns if info_col.lower() in c), None)
+
+            print(f"Looking for author col containing '{author_col}' → found: {author_found}")
+            print(f"Looking for info col containing '{info_col}' → found: {info_found}")
+
+            if author_found and info_found:
+                for _, row in comp_df.iterrows():
+                    name = row.get(author_found)
+                    info = row.get(info_found)
+                    if pd.notna(name) and pd.notna(info):
+                        composer_map[str(name).strip().lower()] = str(info).strip()
+                print(f"   Loaded {len(composer_map)} composer bios")
+            else:
+                print(f"   Could not find columns. Available: {list(comp_df.columns)}")
+
         for song_in in songs_data:
             # Safely extract & clean fields
             name = str(getattr(song_in, 'name', '') or '').strip()
             composer = str(getattr(song_in, 'composer', '') or '').strip()
             description = str(getattr(song_in, 'description', '') or '').strip()
+            link = str(getattr(song_in, 'link', '') or '').strip() or None
 
             # Skip rows where name is missing, empty, or NaN
             if not name or name.lower() in ('nan', 'none', ''):
@@ -72,6 +100,8 @@ def import_songs_from_excel(file_path: str | Path, sheet_name: str = "music") ->
             if description.lower() in ('nan', 'none', ''):
                 description = None
 
+            comp_info = composer_map.get(composer.lower())
+
             try:
                 existing = db.query(Song).filter(
                     Song.name == name,
@@ -82,7 +112,9 @@ def import_songs_from_excel(file_path: str | Path, sheet_name: str = "music") ->
                     db_song = Song(
                         name=name,
                         composer=composer,
-                        description=description
+                        description=description,
+                        composer_info=comp_info,
+                        link=link,
                     )
                     db.add(db_song)
                     stats["imported"] += 1

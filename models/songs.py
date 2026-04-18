@@ -9,5 +9,7 @@ class Song(Base):
     name = Column(String, nullable=False)
     composer = Column(String, nullable=False)
     description = Column(Text, nullable=True)
+    composer_info = Column(String, nullable=True)
+    link = Column(String, nullable=True)
 
     events = relationship("Event", secondary=song_event, back_populates="songs")
