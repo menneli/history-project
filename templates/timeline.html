@@ -2,15 +2,17 @@
 {% block title %}Таймлайн — HistorySounds{% endblock %}
 {% block content %}
 <h1>Исторические события XX века</h1>
-<p class="subtitle">Нажмите на событие, чтобы увидеть связанные музыкальные произведения</p>
+<!--<p class="subtitle">Так звучит история</p>-->
+<!--<p class="subtitle">Нажмите на событие, чтобы увидеть связанные музыкальные произведения</p>-->
 
-<input type="text" id="search" class="search-box" placeholder="Поиск по событиям...">
+<input type="text" id="search" class="search-box" placeholder="Поиск по событиям">
 
 <ul class="timeline" id="timeline">
 {% set decade_tracker = namespace(current=none) %}
 {% for e in events %}
   {% set decade = (e.year_start // 10) * 10 if e.year_start else none %}
 
+  {# Decade separator (appears before first item of new decade) #}
   {% if decade and decade != decade_tracker.current %}
     {% set decade_tracker.current = decade %}
     <li class="timeline-decade">
@@ -19,23 +21,38 @@
     </li>
   {% endif %}
 
-  <li class="timeline-item" data-text="{{ (e.title | lower) + ' ' + (e.songs | map(attribute='name') | join(' ') | lower) }}">
-    <div class="timeline-dot"></div>
+  {# Single timeline item — now with data-detail #}
+<li class="timeline-item"
+    data-text="{{ (e.title | lower) + ' ' + (e.songs | map(attribute='name') | join(' ') | lower) }}"
+    data-detail="{{ e.description | default('Нет описания', true) }}">
+  <div class="timeline-dot"></div>
+
+  <a href="/event/{{ e.id }}" class="timeline-link">
     <div class="timeline-content">
-      <a href="/event/{{ e.id }}" class="timeline-link">
-        <h3>
-          {{ e.title or (e.description | truncate(55, False, '…')) }}
-          {% if e.year_start %}
-            <span class="year-badge">
-              {{ e.year_start }}{% if e.year_end and e.year_end != e.year_start %}–{{ e.year_end }}{% endif %}
-            </span>
-          {% endif %}
-        </h3>
-      </a>
+      <h3>
+        {{ e.title or (e.description | truncate(55, False, '…')) }}
+        {% if e.year_start %}
+          <span class="year-badge">
+            {{ e.year_start }}{% if e.year_end and e.year_end != e.year_start %}–{{ e.year_end }}{% endif %}
+          </span>
+        {% endif %}
+      </h3>
     </div>
-  </li>
+  </a>
+</li>
 {% endfor %}
 </ul>
+
+<div id="history-popup" class="history-popup">
+  <h4 id="popup-title">Детали</h4>
+  <p id="popup-text"></p>
+</div>
+
+<button id="back-to-top" class="back-to-top" aria-label="Наверх">
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m18 15-6-6-6 6"/>
+  </svg>
+</button>
 
 <script>
 document.getElementById('search').addEventListener('input', (e) => {
@@ -65,5 +82,78 @@ document.getElementById('search').addEventListener('input', (e) => {
     decade.style.display = hasVisibleItem ? 'list-item' : 'none';
   });
 });
+  (() => {
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+    return; // Exit early — no hover, no problems
+  }
+  const popup = document.getElementById('history-popup');
+  const popupTitle = document.getElementById('popup-title');
+  const popupText = document.getElementById('popup-text');
+
+  // Guard clause: exit if popup isn't in DOM
+  if (!popup || !popupTitle || !popupText) {
+    console.warn('Popup elements not found — hover functionality skipped');
+    return;
+  }
+
+  let hoverTimer = null;
+  const HOVER_DELAY = 1000;
+
+  document.querySelectorAll('.timeline-item').forEach(item => {
+    item.addEventListener('mouseenter', () => {
+      if (hoverTimer) clearTimeout(hoverTimer);
+      hoverTimer = setTimeout(() => {
+        const title = item.querySelector('h3')?.textContent?.split('\n')[0].trim() || 'Событие';
+        const detail = item.dataset.detail?.trim() || 'Описание отсутствует';
+
+        popupTitle.textContent = title;
+        popupText.textContent = detail;
+        popup.classList.add('visible');
+      }, HOVER_DELAY);
+    });
+
+    item.addEventListener('mouseleave', () => {
+      if (hoverTimer) {
+        clearTimeout(hoverTimer);
+        hoverTimer = null;
+      }
+      popup.classList.remove('visible');
+    });
+  });
+
+  // Hide popup during search
+  document.getElementById('search')?.addEventListener('input', () => {
+    popup.classList.remove('visible');
+    if (hoverTimer) {
+      clearTimeout(hoverTimer);
+      hoverTimer = null;
+    }
+  });
+})();
+
+  (() => {
+  const btn = document.getElementById('back-to-top');
+  if (!btn) return;
+
+  const SCROLL_THRESHOLD = 400; // px
+
+  const toggleButton = () => {
+    if (window.scrollY > SCROLL_THRESHOLD) {
+      btn.classList.add('visible');
+    } else {
+      btn.classList.remove('visible');
+    }
+  };
+
+  // Use passive listener for better scroll performance
+  window.addEventListener('scroll', toggleButton, { passive: true });
+
+  // Check on load in case page opens mid-scroll
+  toggleButton();
+
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+})();
 </script>
 {% endblock %}
