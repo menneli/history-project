@@ -55,6 +55,7 @@ header a:hover { opacity: 0.8; }
   color: rgba(255, 255, 255, 0.5);
   font-size: 0.9rem;
   letter-spacing: 0.01em;
+  cursor: default;
 }
 
 /* ===== Main & Typography ===== */
@@ -332,6 +333,142 @@ footer {
   color: var(--text-muted);
 }
 
+.theme-toggle {
+  background: rgba(255, 255, 255, 0.12); /* Faint white tint */
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  padding: 0.45rem;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.theme-toggle svg {
+  stroke: #ffffff;
+  fill: none;
+  stroke-width: 2;
+  width: 20px;
+  height: 20px;
+}
+
+[data-theme="dark"] {
+  --primary: #0056b3;
+  --primary-hover: #003d82;
+
+  --bg: #1a1a1a;
+  --card-bg: #0d0d0d;
+
+  --text: #ffffff;
+  --text-muted: #b0b0b0;
+  --border: #333333;
+
+  --shadow: none;
+  --shadow-hover: 0 2px 8px rgba(0,0,0,0.5);
+  color-scheme: dark;
+}
+
+[data-theme="dark"] header {
+  background: #0a0a0a;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  border-bottom: 1px solid #333;
+}
+
+[data-theme="dark"] .slogan {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="dark"] .timeline::before {
+  background: #404040;
+}
+
+[data-theme="dark"] .timeline-dot {
+  background: var(--primary);
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+[data-theme="dark"] .timeline-decade .timeline-dot {
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 3px var(--primary);
+}
+}
+
+[data-theme="dark"] .timeline-content {
+  background: var(--card-bg);
+  border: 1px solid #2a2a2a;
+  box-shadow: none;
+}
+
+[data-theme="dark"] .timeline-item:hover .timeline-content {
+  box-shadow: var(--shadow-hover);
+  border-color: #1976d2;
+  background: #111111;
+}
+
+[data-theme="dark"] .search-box {
+  background: #0d0d0d;
+  border-color: #333333;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .search-box:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.4);
+}
+
+[data-theme="dark"] .history-popup {
+  background: var(--card-bg);
+  border-color: var(--border);
+  color: var(--text);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+}
+
+[data-theme="dark"] .history-popup h4 {
+  color: var(--text);
+  border-bottom-color: var(--border);
+}
+
+[data-theme="dark"] .history-popup p {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .back-to-top {
+  background: var(--card-bg);
+  border-color: var(--border);
+  color: var(--primary);
+}
+
+[data-theme="dark"] .back-to-top:hover {
+  background: var(--primary);
+  color: white;
+}
+
+[data-theme="dark"] .theme-toggle {
+  border-color: var(--border);
+  color: #ffffff;
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+  background: var(--border);
+}
+
+[data-theme="dark"] .theme-toggle svg {
+  stroke: #ffffff;
+}
+
+[data-theme="dark"] #shpinner-overlay {
+  background: var(--bg);
+}
+
+[data-theme="dark"] .shpinner {
+  border-color: var(--border);
+  border-top-color: var(--primary);
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 600px) {
   header { padding: 1rem; }
@@ -390,4 +527,139 @@ footer {
     width: 40px;
     height: 40px;
   }
+}
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), color var(--transition);
+}
+.theme-toggle:hover { background: var(--border); }
+.theme-toggle .icon-sun { display: none; }
+.theme-toggle .icon-moon { display: block; }
+[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+/* ===== LANDING PAGE STYLES ===== */
+.hero {
+  text-align: center;
+  padding: 6rem 1.5rem 4rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+}
+.hero p {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-bottom: 2.5rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cta-button {
+  display: inline-block;
+  padding: 0.85rem 2.2rem;
+  background: var(--primary); /* Change to #e8913a if you want the orange from screenshot */
+  color: white;
+  text-decoration: none;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 1.05rem;
+  transition: background var(--transition), transform var(--transition);
+}
+.cta-button:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+.section-title {
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+.section-subtitle {
+  text-align: center;
+  color: var(--text-muted);
+  margin-bottom: 3rem;
+  font-size: 1.05rem;
+}
+
+.team {
+  padding: 4rem 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+.team-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.team-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+.team-photo {
+  width: 100%;
+  max-width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+}
+.team-card h3 {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 1.2rem;
+}
+.team-role {
+  display: block;
+  color: var(--primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+.team-card p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.about {
+  padding: 4rem 1.5rem 6rem;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+.about p {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+/* Mobile tweaks */
+@media (max-width: 600px) {
+  .hero { padding: 4rem 1rem 3rem; }
+  .hero h1 { font-size: 2rem; }
+  .team-grid { grid-template-columns: 1fr; }
+  .team { padding: 3rem 1rem; }
+  .about { padding: 3rem 1rem 4rem; }
 }

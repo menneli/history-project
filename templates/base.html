@@ -4,7 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}HistorySounds{% endblock %}</title>
-    <link rel="stylesheet" href="/static/style.css?v=4">
+    <script>
+    (function() {
+      const stored = localStorage.getItem('hs-theme-preference');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = stored || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/static/style.css">
+  {% block extra_head %}{% endblock %}
 </head>
 <body>
     <div id="shpinner-overlay">
@@ -14,7 +24,22 @@
 
     <header>
         <a href="/" class="logo">HistorySounds</a>
-        <nav><a href="/" class="slogan">Так звучит история</a></nav>
+        <nav style="display: flex; align-items: center; gap: 1rem;">
+  <span class="slogan">Так звучит история</span>
+  <button id="theme-toggle" class="theme-toggle" aria-label="Переключить тему">
+    <!-- Sun icon (shows in dark mode) -->
+    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+    <!-- Moon icon (shows in light mode) -->
+    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  </button>
+</nav>
     </header>
     <main>
         {% block content %}{% endblock %}
@@ -29,6 +54,42 @@
         const overlay = document.getElementById('shpinner-overlay');
         if (overlay) overlay.classList.add('hidden');
       });
+
+  (() => {
+  const toggle = document.getElementById('theme-toggle');
+  if (!toggle) return;
+
+  const html = document.documentElement;
+  const storageKey = 'hs-theme-preference';
+
+  // Get theme: user choice > system preference > light default
+  const getPreferredTheme = () => {
+    const stored = localStorage.getItem(storageKey);
+    if (stored) return stored;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  };
+
+  const setTheme = (theme) => {
+    html.setAttribute('data-theme', theme);
+    localStorage.setItem(storageKey, theme);
+  };
+
+  // Apply immediately on load
+  setTheme(getPreferredTheme());
+
+  // Toggle on click
+  toggle.addEventListener('click', () => {
+    const current = html.getAttribute('data-theme');
+    setTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  // Auto-update if user changes OS preference (only if they haven't manually overridden)
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    if (!localStorage.getItem(storageKey)) {
+      setTheme(e.matches ? 'dark' : 'light');
+    }
+  });
+})();
     </script>
 </body>
 </html>

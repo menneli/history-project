@@ -102,9 +102,12 @@ async def song_page(request: Request, composer_slug: str, song_slug: str, db: Se
 
     return templates.TemplateResponse(request, "song.html", {"song": song})
 
-
-@app.get("/", response_class=HTMLResponse)
+@app.get("/timeline", response_class=HTMLResponse)
 async def timeline(request: Request, db: Session = Depends(get_db)):
     # Order by ID
     events = db.query(Event).order_by(Event.year_start.asc()).all()
     return templates.TemplateResponse(request, "timeline.html", {"events": events})
+
+@app.get("/", response_class=HTMLResponse)
+async def main_page(request: Request):
+    return templates.TemplateResponse(request, "main.html")
