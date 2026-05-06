@@ -456,6 +456,27 @@ footer {
   background: var(--border);
 }
 
+[data-theme="dark"] .team-card {
+  background: var(--card-bg);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .team-card:hover {
+  box-shadow: var(--shadow-hover);
+}
+
+[data-theme="dark"] .team-card h3 {
+  color: var(--text);
+}
+
+[data-theme="dark"] .team-role {
+  color: var(--primary);
+}
+
+[data-theme="dark"] .team-card p {
+  color: var(--text-muted);
+}
+
 [data-theme="dark"] .theme-toggle svg {
   stroke: #ffffff;
 }
@@ -570,7 +591,7 @@ footer {
 .cta-button {
   display: inline-block;
   padding: 0.85rem 2.2rem;
-  background: var(--primary); /* Change to #e8913a if you want the orange from screenshot */
+  background: var(--primary);
   color: white;
   text-decoration: none;
   border-radius: var(--radius);
@@ -658,56 +679,62 @@ footer {
 .team-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
+  gap: 1.5rem;
   max-width: 900px;
   margin: 0 auto;
   padding: 2rem;
 }
 
 .team-card {
-  background: #1a1a1a;
-  border-radius: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   padding: 2rem;
   text-align: center;
-  border: 1px solid #2a2a2a;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-sizing: border-box;
+  transition: transform var(--transition), box-shadow var(--transition);
 }
 
 .team-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-hover);
 }
 
 .team-card h3 {
-  color: #fff;
+  color: var(--text);
   margin-bottom: 0.5rem;
   font-size: 1.25rem;
 }
 
 .team-role {
-  color: #4a9eff;
+  color: var(--primary);
   font-size: 0.9rem;
   display: block;
 }
 
-.team-card-wide {
-  grid-column: 1 / -1;
-  max-width: 500px;
-  margin: 0 auto;
-  width: 100%;
+.team-card p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  text-align: left;
+  margin-top: 1rem;
 }
 
-/* Responsive */
+.team-card-wide {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: 65%;
+  margin: 0;
+}
+
+/* Mobile Responsiveness */
 @media (max-width: 768px) {
   .team-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
     padding: 1rem;
   }
-
   .team-card-wide {
-    grid-column: 1;
-    max-width: 100%;
+    width: 100%;
   }
 }
 
