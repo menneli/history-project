@@ -91,9 +91,6 @@ async def song_page(request: Request, composer_slug: str, song_slug: str, db: Se
             break
 
     if not song:
-        # Debug log only - no more crashing
-        print(f" Not found: composer='{composer_q}', song='{song_q}'")
-        print(f"   Searched {len(all_songs)} songs")
         # Optional: show closest name matches
         close_matches = [s for s in all_songs if song_q in normalize(s.name)]
         if close_matches:
